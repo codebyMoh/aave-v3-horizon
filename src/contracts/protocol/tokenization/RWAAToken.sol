@@ -20,11 +20,7 @@ abstract contract RWAAToken is AToken {
    * @param name The name of the token
    * @param symbol The symbol of the token
    */
-  constructor(
-    IPool pool,
-    string memory name,
-    string memory symbol
-  ) AToken(pool, name, symbol) {
+  constructor(IPool pool, string memory name, string memory symbol) AToken(pool, name, symbol) {
     // Intentionally left blank
   }
 
@@ -42,12 +38,18 @@ abstract contract RWAAToken is AToken {
   }
 
   /// @inheritdoc IERC20
-  function approve(address spender, uint256 amount) external virtual override(IERC20, IncentivizedERC20) returns (bool) {
+  function approve(
+    address spender,
+    uint256 amount
+  ) external virtual override(IERC20, IncentivizedERC20) returns (bool) {
     revert(Errors.OPERATION_NOT_SUPPORTED);
   }
 
   /// @inheritdoc IncentivizedERC20
-  function increaseAllowance(address spender, uint256 addedValue) external virtual override returns (bool) {
+  function increaseAllowance(
+    address spender,
+    uint256 addedValue
+  ) external virtual override returns (bool) {
     revert(Errors.OPERATION_NOT_SUPPORTED);
   }
 
@@ -67,7 +69,12 @@ abstract contract RWAAToken is AToken {
    * @param amount The amount getting transferred
    * @param validate True if the transfer needs to be validated, false otherwise
    */
-  function _transfer(address from, address to, uint256 amount, bool validate) internal virtual override onlyATokenTransferAdmin {
+  function _transfer(
+    address from,
+    address to,
+    uint256 amount,
+    bool validate
+  ) internal virtual override onlyATokenTransferAdmin {
     super._transfer(from, to, amount, validate);
   }
 
@@ -85,7 +92,10 @@ abstract contract RWAAToken is AToken {
    */
   modifier onlyATokenTransferAdmin() {
     AccessControl aclManager = AccessControl(_addressesProvider.getACLManager());
-    require(aclManager.hasRole(RWA_FORCE_TRANSFER_ROLE, msg.sender), Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN);
+    require(
+      aclManager.hasRole(RWA_FORCE_TRANSFER_ROLE, msg.sender),
+      Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN
+    );
     _;
   }
 }

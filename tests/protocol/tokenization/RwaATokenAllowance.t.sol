@@ -6,69 +6,71 @@ import {RWAAToken} from 'src/contracts/protocol/tokenization/RWAAToken.sol';
 import {TestnetProcedures} from 'tests/utils/TestnetProcedures.sol';
 
 contract RwaATokenAllowanceTests is TestnetProcedures {
-    RWAAToken public aBuidl;
+  RWAAToken public aBuidl;
 
-    function setUp() public {
-        initTestEnvironment();
+  function setUp() public {
+    initTestEnvironment();
 
-        (address aBuidlAddress,,) = contracts.protocolDataProvider.getReserveTokensAddresses(tokenList.buidl);
-        aBuidl = RWAAToken(aBuidlAddress);
-    }
+    (address aBuidlAddress, , ) = contracts.protocolDataProvider.getReserveTokensAddresses(
+      tokenList.buidl
+    );
+    aBuidl = RWAAToken(aBuidlAddress);
+  }
 
-    function test_rwaAToken_permit_revertsWith_OperationNotSupported() public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.permit(alice, bob, 100e6, block.timestamp + 1, 0, bytes32(0), bytes32(0));
-    }
+  function test_rwaAToken_permit_revertsWith_OperationNotSupported() public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.permit(alice, bob, 100e6, block.timestamp + 1, 0, bytes32(0), bytes32(0));
+  }
 
-    function test_rwaAToken_permit_fuzz_revertsWith_OperationNotSupported(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.permit(owner, spender, value, deadline, v, r, s);
-    }
+  function test_rwaAToken_permit_fuzz_revertsWith_OperationNotSupported(
+    address owner,
+    address spender,
+    uint256 value,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  ) public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.permit(owner, spender, value, deadline, v, r, s);
+  }
 
-    function test_rwaAToken_approve_revertsWith_OperationNotSupported() public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.approve(bob, 100e6);
-    }
+  function test_rwaAToken_approve_revertsWith_OperationNotSupported() public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.approve(bob, 100e6);
+  }
 
-    function test_rwaAToken_approve_fuzz_revertsWith_OperationNotSupported(
-        address spender,
-        uint256 amount
-    ) public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.approve(spender, amount);
-    }
+  function test_rwaAToken_approve_fuzz_revertsWith_OperationNotSupported(
+    address spender,
+    uint256 amount
+  ) public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.approve(spender, amount);
+  }
 
-    function test_rwaAToken_increaseAllowance_revertsWith_OperationNotSupported() public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.increaseAllowance(bob, 100e6);
-    }
+  function test_rwaAToken_increaseAllowance_revertsWith_OperationNotSupported() public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.increaseAllowance(bob, 100e6);
+  }
 
-    function test_rwaAToken_increaseAllowance_fuzz_revertsWith_OperationNotSupported(
-        address spender,
-        uint256 addedValue
-    ) public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.increaseAllowance(spender, addedValue);
-    }
+  function test_rwaAToken_increaseAllowance_fuzz_revertsWith_OperationNotSupported(
+    address spender,
+    uint256 addedValue
+  ) public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.increaseAllowance(spender, addedValue);
+  }
 
-    function test_rwaAToken_decreaseAllowance_revertsWith_OperationNotSupported() public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.decreaseAllowance(bob, 100e6);
-    }
+  function test_rwaAToken_decreaseAllowance_revertsWith_OperationNotSupported() public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.decreaseAllowance(bob, 100e6);
+  }
 
-    function test_rwaAToken_decreaseAllowance_fuzz_revertsWith_OperationNotSupported(
-        address spender,
-        uint256 subtractedValue
-    ) public {
-        vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-        aBuidl.decreaseAllowance(spender, subtractedValue);
-    }
+  function test_rwaAToken_decreaseAllowance_fuzz_revertsWith_OperationNotSupported(
+    address spender,
+    uint256 subtractedValue
+  ) public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
+    aBuidl.decreaseAllowance(spender, subtractedValue);
+  }
 }
