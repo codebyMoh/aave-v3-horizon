@@ -68,7 +68,7 @@ contract TestnetProcedures is Test, DeployUtils, FfiUtils, DefaultMarketInput {
 
   Roles internal roleList;
 
-  ACLManager internal aclManager;
+  address internal aclManagerAddress;
 
   TestnetERC20 internal usdx;
   TestnetERC20 internal wbtc;
@@ -149,7 +149,7 @@ contract TestnetProcedures is Test, DeployUtils, FfiUtils, DefaultMarketInput {
     vm.label(tokenList.ustb, 'USTB');
     vm.label(tokenList.usdy, 'USDY');
 
-    aclManager = ACLManager(address(contracts.aclManager));
+    aclManagerAddress = address(contracts.aclManager);
 
     if (mintUserTokens) {
       // Perform setup of user positions

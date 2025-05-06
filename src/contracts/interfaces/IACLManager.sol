@@ -52,12 +52,6 @@ interface IACLManager {
   function ASSET_LISTING_ADMIN_ROLE() external view returns (bytes32);
 
   /**
-   * @notice Returns the identifier of the RwaForceTransferAdmin role
-   * @return The id of the RwaForceTransferAdmin role
-   */
-  function RWA_FORCE_TRANSFER_ROLE() external view returns (bytes32);
-
-  /**
    * @notice Set the role as admin of a specific role.
    * @dev By default the admin role for all roles is `DEFAULT_ADMIN_ROLE`.
    * @param role The role to be managed by the admin role
@@ -178,23 +172,4 @@ interface IACLManager {
    * @return True if the given address is AssetListingAdmin, false otherwise
    */
   function isAssetListingAdmin(address admin) external view returns (bool);
-
-  /**
-   * @notice Adds a new admin as RwaForceTransferAdmin
-   * @param admin The address of the new admin
-   */
-  function addRwaForceTransferAdmin(address admin) external;
-
-  /**
-   * @notice Removes an admin as RwaForceTransferAdmin
-   * @param admin The address of the admin to remove
-   */
-  function removeRwaForceTransferAdmin(address admin) external;
-
-  /**
-   * @notice Returns true if the address is RwaForceTransferAdmin, false otherwise
-   * @param admin The address to check
-   * @return True if the given address is RwaForceTransferAdmin, false otherwise
-   */
-  function isRwaForceTransferAdmin(address admin) external view returns (bool);
 }

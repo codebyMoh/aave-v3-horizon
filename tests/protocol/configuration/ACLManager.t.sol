@@ -22,6 +22,7 @@ contract ACLManagerTest is TestnetProcedures {
 
   bytes32 internal constant FLASH_BORROWER_ADMIN = keccak256('FLASH_BORROWER_ADMIN');
 
+  ACLManager internal aclManager;
   PoolAddressesProvider internal poolAddressesProvider;
   bytes32 DEFAULT_ADMIN_ROLE;
   bytes32 FLASH_BORROWER_ROLE;
