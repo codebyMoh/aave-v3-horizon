@@ -59,7 +59,7 @@ contract RwaATokenTransferTests is TestnetProcedures {
         aBuidl.transfer(carol, 0);
     }
 
-    function test_rwaAToken_transfer_rwaForceTransferAdmin_to_bob() public {
+    function test_rwaAToken_transfer_rwaForceTransferAdmin_to_bob_all() public {
         uint256 rwaForceTransferAdminBalanceBefore = aBuidl.balanceOf(rwaForceTransferAdmin);
         uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
 
@@ -73,7 +73,21 @@ contract RwaATokenTransferTests is TestnetProcedures {
         assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + rwaForceTransferAdminBalanceBefore);
     }
 
-    function test_rwaAToken_transferFrom_alice_to_bob_by_rwaForceTransferAdmin() public {
+    function test_rwaAToken_transfer_rwaForceTransferAdmin_to_bob_zero() public {
+        uint256 rwaForceTransferAdminBalanceBefore = aBuidl.balanceOf(rwaForceTransferAdmin);
+        uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+        vm.expectEmit(address(aBuidl));
+        emit IERC20.Transfer(rwaForceTransferAdmin, bob, 0);
+
+        vm.prank(rwaForceTransferAdmin);
+        aBuidl.transfer(bob, 0);
+
+        assertEq(aBuidl.balanceOf(rwaForceTransferAdmin), rwaForceTransferAdminBalanceBefore);
+        assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
+    }
+
+    function test_rwaAToken_transferFrom_alice_to_bob_by_rwaForceTransferAdmin_all() public {
         uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
         uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
 
@@ -85,6 +99,20 @@ contract RwaATokenTransferTests is TestnetProcedures {
 
         assertEq(aBuidl.balanceOf(alice), 0);
         assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aliceBalanceBefore);
+    }
+
+    function test_rwaAToken_transferFrom_alice_to_bob_by_rwaForceTransferAdmin_zero() public {
+        uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
+        uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+        vm.expectEmit(address(aBuidl));
+        emit IERC20.Transfer(alice, bob, 0);
+
+        vm.prank(rwaForceTransferAdmin);
+        aBuidl.transferFrom(alice, bob, 0);
+
+        assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore);
+        assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
     }
 
     function test_rwaAToken_transferFrom_alice_to_bob_by_carol_revertsWith_CallerNotRwaForceTransferAdmin() public {
