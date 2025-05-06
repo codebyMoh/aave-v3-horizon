@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.10;
 
+import {IncentivizedERC20} from 'src/contracts/protocol/tokenization/base/IncentivizedERC20.sol';
+import {SafeCast} from 'src/contracts/dependencies/openzeppelin/contracts/SafeCast.sol';
+import {IERC20} from 'src/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 import {Errors} from 'src/contracts/protocol/libraries/helpers/Errors.sol';
 import {AToken} from 'src/contracts/protocol/tokenization/AToken.sol';
 import {IACLManager} from 'src/contracts/interfaces/IACLManager.sol';
-import {IAToken} from 'src/contracts/interfaces/IAToken.sol';
 import {IPool} from 'src/contracts/interfaces/IPool.sol';
 
 abstract contract RWAAToken is AToken {
+  using SafeCast for uint256;
+
   /**
    * @dev Constructor.
    * @param pool The address of the Pool contract
@@ -22,19 +26,6 @@ abstract contract RWAAToken is AToken {
     // Intentionally left blank
   }
 
-  /// @inheritdoc IAToken
-  function permit(
-    address owner,
-    address spender,
-    uint256 value,
-    uint256 deadline,
-    uint8 v,
-    bytes32 r,
-    bytes32 s
-  ) external virtual override {
-    revert(Errors.OPERATION_NOT_SUPPORTED);
-  }
-
   /**
    * @notice Transfers the aTokens between two users. Validates the transfer
    * (ie checks for valid HF after the transfer) if required
@@ -46,6 +37,15 @@ abstract contract RWAAToken is AToken {
    // todo: is pool admin fine, or we want to add a new permission?
   function _transfer(address from, address to, uint256 amount, bool validate) internal virtual override onlyRwaForceTransferAdmin {
     super._transfer(from, to, amount, validate);
+  }
+
+  /// @inheritdoc IERC20
+  function transferFrom(
+    address sender,
+    address recipient,
+    uint256 amount
+  ) external virtual override(IERC20, IncentivizedERC20) returns (bool) {
+    _transfer(sender, recipient, amount.toUint128());
   }
 
   /**

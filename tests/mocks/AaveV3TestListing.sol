@@ -26,6 +26,15 @@ contract AaveV3TestListing is AaveV3Payload {
   address public immutable WETH_ADDRESS;
   address public immutable WETH_MOCK_PRICE_FEED;
 
+  address public immutable BUIDL_ADDRESS;
+  address public immutable BUIDL_MOCK_PRICE_FEED;
+
+  address public immutable USTB_ADDRESS;
+  address public immutable USTB_MOCK_PRICE_FEED;
+
+  address public immutable USDY_ADDRESS;
+  address public immutable USDY_MOCK_PRICE_FEED;
+
   address public immutable GHO_ADDRESS;
   address public immutable GHO_MOCK_PRICE_FEED;
 
@@ -50,6 +59,15 @@ contract AaveV3TestListing is AaveV3Payload {
 
     WETH_ADDRESS = weth9;
     WETH_MOCK_PRICE_FEED = address(new MockAggregator(1800e8));
+
+    BUIDL_ADDRESS = address(new TestnetERC20('BUIDL', 'BUIDL', 6, erc20Owner));
+    BUIDL_MOCK_PRICE_FEED = address(new MockAggregator(1e8));
+
+    USTB_ADDRESS = address(new TestnetERC20('USTB', 'USTB', 6, erc20Owner));
+    USTB_MOCK_PRICE_FEED = address(new MockAggregator(1e8));
+
+    USDY_ADDRESS = address(new TestnetERC20('USDY', 'USDY', 18, erc20Owner));
+    USDY_MOCK_PRICE_FEED = address(new MockAggregator(1e8));
 
     GHO_ADDRESS = address(new TestnetERC20('GHO', 'GHO', 18, erc20Owner));
     GHO_MOCK_PRICE_FEED = address(new MockAggregator(1e8));
@@ -115,7 +133,7 @@ contract AaveV3TestListing is AaveV3Payload {
     override
     returns (IEngine.ListingWithCustomImpl[] memory)
   {
-    IEngine.ListingWithCustomImpl[] memory listingsCustom = new IEngine.ListingWithCustomImpl[](3);
+    IEngine.ListingWithCustomImpl[] memory listingsCustom = new IEngine.ListingWithCustomImpl[](6);
 
     IEngine.InterestRateInputData memory rateParams = IEngine.InterestRateInputData({
       optimalUsageRatio: 45_00,
@@ -195,6 +213,81 @@ contract AaveV3TestListing is AaveV3Payload {
       }),
       IEngine.TokenImplementations({
         aToken: ATOKEN_IMPLEMENTATION,
+        vToken: VARIABLE_DEBT_TOKEN_IMPLEMENTATION
+      })
+    );
+
+    listingsCustom[3] = IEngine.ListingWithCustomImpl(
+      IEngine.Listing({
+        asset: BUIDL_ADDRESS,
+        assetSymbol: 'BUIDL',
+        priceFeed: BUIDL_MOCK_PRICE_FEED,
+        rateStrategyParams: rateParams,
+        enabledToBorrow: EngineFlags.DISABLED,
+        borrowableInIsolation: EngineFlags.DISABLED,
+        withSiloedBorrowing: EngineFlags.DISABLED,
+        flashloanable: EngineFlags.DISABLED,
+        ltv: 82_50,
+        liqThreshold: 86_00,
+        liqBonus: 5_00,
+        reserveFactor: 10_00,
+        supplyCap: 0,
+        borrowCap: 0,
+        debtCeiling: 0,
+        liqProtocolFee: 10_00
+      }),
+      IEngine.TokenImplementations({
+        aToken: RWA_ATOKEN_IMPLEMENTATION,
+        vToken: VARIABLE_DEBT_TOKEN_IMPLEMENTATION
+      })
+    );
+
+    listingsCustom[4] = IEngine.ListingWithCustomImpl(
+      IEngine.Listing({
+        asset: USTB_ADDRESS,
+        assetSymbol: 'USTB',
+        priceFeed: USTB_MOCK_PRICE_FEED,
+        rateStrategyParams: rateParams,
+        enabledToBorrow: EngineFlags.DISABLED,
+        borrowableInIsolation: EngineFlags.DISABLED,
+        withSiloedBorrowing: EngineFlags.DISABLED,
+        flashloanable: EngineFlags.DISABLED,
+        ltv: 82_50,
+        liqThreshold: 86_00,
+        liqBonus: 5_00,
+        reserveFactor: 10_00,
+        supplyCap: 0,
+        borrowCap: 0,
+        debtCeiling: 0,
+        liqProtocolFee: 10_00
+      }),
+      IEngine.TokenImplementations({
+        aToken: RWA_ATOKEN_IMPLEMENTATION,
+        vToken: VARIABLE_DEBT_TOKEN_IMPLEMENTATION
+      })
+    );
+
+    listingsCustom[5] = IEngine.ListingWithCustomImpl(
+      IEngine.Listing({
+        asset: USDY_ADDRESS,
+        assetSymbol: 'USDY',
+        priceFeed: USDY_MOCK_PRICE_FEED,
+        rateStrategyParams: rateParams,
+        enabledToBorrow: EngineFlags.DISABLED,
+        borrowableInIsolation: EngineFlags.DISABLED,
+        withSiloedBorrowing: EngineFlags.DISABLED,
+        flashloanable: EngineFlags.DISABLED,
+        ltv: 82_50,
+        liqThreshold: 86_00,
+        liqBonus: 5_00,
+        reserveFactor: 10_00,
+        supplyCap: 0,
+        borrowCap: 0,
+        debtCeiling: 0,
+        liqProtocolFee: 10_00
+      }),
+      IEngine.TokenImplementations({
+        aToken: RWA_ATOKEN_IMPLEMENTATION,
         vToken: VARIABLE_DEBT_TOKEN_IMPLEMENTATION
       })
     );

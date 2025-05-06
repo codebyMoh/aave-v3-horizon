@@ -68,14 +68,22 @@ contract TestnetProcedures is Test, DeployUtils, FfiUtils, DefaultMarketInput {
 
   Roles internal roleList;
 
+  ACLManager internal aclManager;
+
   TestnetERC20 internal usdx;
   TestnetERC20 internal wbtc;
+  TestnetERC20 internal buidl;
+  TestnetERC20 internal ustb;
+  TestnetERC20 internal usdy;
   WETH9 internal weth;
 
   struct TokenList {
     address wbtc;
     address weth;
     address usdx;
+    address buidl;
+    address ustb;
+    address usdy;
     address gho;
   }
 
@@ -129,11 +137,19 @@ contract TestnetProcedures is Test, DeployUtils, FfiUtils, DefaultMarketInput {
 
     usdx = TestnetERC20(tokenList.usdx);
     wbtc = TestnetERC20(tokenList.wbtc);
+    buidl = TestnetERC20(tokenList.buidl);
+    ustb = TestnetERC20(tokenList.ustb);
+    usdy = TestnetERC20(tokenList.usdy);
     weth = WETH9(payable(tokenList.weth));
 
     vm.label(tokenList.usdx, 'USDX');
     vm.label(tokenList.wbtc, 'WBTC');
     vm.label(tokenList.weth, 'WETH');
+    vm.label(tokenList.buidl, 'BUIDL');
+    vm.label(tokenList.ustb, 'USTB');
+    vm.label(tokenList.usdy, 'USDY');
+
+    aclManager = ACLManager(address(contracts.aclManager));
 
     if (mintUserTokens) {
       // Perform setup of user positions
@@ -230,6 +246,9 @@ contract TestnetProcedures is Test, DeployUtils, FfiUtils, DefaultMarketInput {
 
     assetsList.wbtc = testnetListingPayload.WBTC_ADDRESS();
     assetsList.usdx = testnetListingPayload.USDX_ADDRESS();
+    assetsList.buidl = testnetListingPayload.BUIDL_ADDRESS();
+    assetsList.ustb = testnetListingPayload.USTB_ADDRESS();
+    assetsList.usdy = testnetListingPayload.USDY_ADDRESS();
     assetsList.gho = testnetListingPayload.GHO_ADDRESS();
 
     ACLManager manager = ACLManager(r.aclManager);
