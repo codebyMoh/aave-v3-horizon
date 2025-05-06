@@ -73,6 +73,22 @@ contract RwaATokenTransferTests is TestnetProcedures {
         assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aTokenTransferAdminBalanceBefore);
     }
 
+    function test_rwaAToken_transfer_aTokenTransferAdmin_to_bob_one() public {
+        uint256 aTokenTransferAdminBalanceBefore = aBuidl.balanceOf(aTokenTransferAdmin);
+        uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+        uint256 transferAmount = 1e6;
+
+        vm.expectEmit(address(aBuidl));
+        emit IERC20.Transfer(aTokenTransferAdmin, bob, transferAmount);
+
+        vm.prank(aTokenTransferAdmin);
+        aBuidl.transfer(bob, transferAmount);
+
+        assertEq(aBuidl.balanceOf(aTokenTransferAdmin), aTokenTransferAdminBalanceBefore - transferAmount);
+        assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + transferAmount);
+    }
+
     function test_rwaAToken_transfer_aTokenTransferAdmin_to_bob_zero() public {
         uint256 aTokenTransferAdminBalanceBefore = aBuidl.balanceOf(aTokenTransferAdmin);
         uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
