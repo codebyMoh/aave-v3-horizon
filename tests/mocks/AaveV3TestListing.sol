@@ -30,6 +30,7 @@ contract AaveV3TestListing is AaveV3Payload {
   address public immutable GHO_MOCK_PRICE_FEED;
 
   address immutable ATOKEN_IMPLEMENTATION;
+  address immutable RWA_ATOKEN_IMPLEMENTATION;
   address immutable VARIABLE_DEBT_TOKEN_IMPLEMENTATION;
 
   ACLManager immutable ACL_MANAGER;
@@ -54,6 +55,7 @@ contract AaveV3TestListing is AaveV3Payload {
     GHO_MOCK_PRICE_FEED = address(new MockAggregator(1e8));
 
     ATOKEN_IMPLEMENTATION = report.aToken;
+    RWA_ATOKEN_IMPLEMENTATION = report.rwaAToken;
     VARIABLE_DEBT_TOKEN_IMPLEMENTATION = report.variableDebtToken;
 
     ACL_MANAGER = ACLManager(report.aclManager);

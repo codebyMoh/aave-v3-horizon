@@ -18,6 +18,7 @@ contract ACLManager is AccessControl, IACLManager {
   bytes32 public constant override FLASH_BORROWER_ROLE = keccak256('FLASH_BORROWER');
   bytes32 public constant override BRIDGE_ROLE = keccak256('BRIDGE');
   bytes32 public constant override ASSET_LISTING_ADMIN_ROLE = keccak256('ASSET_LISTING_ADMIN');
+  bytes32 public constant override RWA_FORCE_TRANSFER_ROLE = keccak256('RWA_FORCE_TRANSFER_ROLE');
 
   IPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
@@ -129,5 +130,20 @@ contract ACLManager is AccessControl, IACLManager {
   /// @inheritdoc IACLManager
   function isAssetListingAdmin(address admin) external view override returns (bool) {
     return hasRole(ASSET_LISTING_ADMIN_ROLE, admin);
+  }
+
+  /// @inheritdoc IACLManager
+  function addRwaForceTransferAdmin(address admin) external override {
+    grantRole(RWA_FORCE_TRANSFER_ROLE, admin);
+  }
+
+  /// @inheritdoc IACLManager
+  function removeRwaForceTransferAdmin(address admin) external override {
+    revokeRole(RWA_FORCE_TRANSFER_ROLE, admin);
+  }
+
+  /// @inheritdoc IACLManager
+  function isRwaForceTransferAdmin(address admin) external view override returns (bool) {
+    return hasRole(RWA_FORCE_TRANSFER_ROLE, admin);
   }
 }
