@@ -26,10 +26,7 @@ contract RwaATokenTransferTests is TestnetProcedures {
     buidl.mint(alice, 100e6);
     buidl.mint(carol, 1e6);
     buidl.mint(aTokenTransferAdmin, 50e6);
-    AccessControl(aclManagerAddress).grantRole(
-      aBuidl.RWA_FORCE_TRANSFER_ROLE(),
-      aTokenTransferAdmin
-    );
+    AccessControl(aclManagerAddress).grantRole(aBuidl.ATOKEN_TRANSFER_ROLE(), aTokenTransferAdmin);
     vm.stopPrank();
 
     vm.startPrank(alice);
@@ -48,72 +45,21 @@ contract RwaATokenTransferTests is TestnetProcedures {
     vm.stopPrank();
   }
 
-  function test_rwaAToken_transfer_alice_revertsWith_CallerNotATokenTransferAdmin() public {
-    uint256 aliceBalance = aBuidl.balanceOf(alice);
-
-    vm.expectRevert(bytes(Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN));
-
-    vm.prank(alice);
-    aBuidl.transfer(carol, aliceBalance);
-  }
-
-  function test_rwaAToken_transfer_bob_revertsWith_CallerNotATokenTransferAdmin_ZeroAmount()
-    public
-  {
-    vm.expectRevert(bytes(Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN));
-
-    vm.prank(bob);
-    aBuidl.transfer(carol, 0);
-  }
-
-  function test_rwaAToken_transfer_aTokenTransferAdmin_to_bob_all() public {
-    uint256 aTokenTransferAdminBalanceBefore = aBuidl.balanceOf(aTokenTransferAdmin);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(aTokenTransferAdmin, bob, aTokenTransferAdminBalanceBefore);
+  function test_rwaAToken_transfer_revertsWith_OperationNotSupported() public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
 
     vm.prank(aTokenTransferAdmin);
-    aBuidl.transfer(bob, aTokenTransferAdminBalanceBefore);
-
-    assertEq(aBuidl.balanceOf(aTokenTransferAdmin), 0);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aTokenTransferAdminBalanceBefore);
+    aBuidl.transfer(alice, 0);
   }
 
-  function test_rwaAToken_transfer_aTokenTransferAdmin_to_bob_one() public {
-    uint256 aTokenTransferAdminBalanceBefore = aBuidl.balanceOf(aTokenTransferAdmin);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+  function test_rwaAToken_transfer_fuzz_revertsWith_OperationNotSupported(address from) public {
+    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
 
-    uint256 transferAmount = 1e6;
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(aTokenTransferAdmin, bob, transferAmount);
-
-    vm.prank(aTokenTransferAdmin);
-    aBuidl.transfer(bob, transferAmount);
-
-    assertEq(
-      aBuidl.balanceOf(aTokenTransferAdmin),
-      aTokenTransferAdminBalanceBefore - transferAmount
-    );
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + transferAmount);
+    vm.prank(from);
+    aBuidl.transfer(alice, 0);
   }
 
-  function test_rwaAToken_transfer_aTokenTransferAdmin_to_bob_zero() public {
-    uint256 aTokenTransferAdminBalanceBefore = aBuidl.balanceOf(aTokenTransferAdmin);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(aTokenTransferAdmin, bob, 0);
-
-    vm.prank(aTokenTransferAdmin);
-    aBuidl.transfer(bob, 0);
-
-    assertEq(aBuidl.balanceOf(aTokenTransferAdmin), aTokenTransferAdminBalanceBefore);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
-  }
-
-  function test_rwaAToken_transferFrom_alice_to_bob_by_aTokenTransferAdmin_all() public {
+  function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_all() public {
     uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
     uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
 
@@ -127,7 +73,21 @@ contract RwaATokenTransferTests is TestnetProcedures {
     assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aliceBalanceBefore);
   }
 
-  function test_rwaAToken_transferFrom_alice_to_bob_by_aTokenTransferAdmin_zero() public {
+  function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_partial() public {
+    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
+    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+    vm.expectEmit(address(aBuidl));
+    emit IERC20.Transfer(alice, bob, 1);
+
+    vm.prank(aTokenTransferAdmin);
+    aBuidl.transferFrom(alice, bob, 1);
+
+    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore - 1);
+    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + 1);
+  }
+
+  function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_zero() public {
     uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
     uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
 
@@ -141,14 +101,21 @@ contract RwaATokenTransferTests is TestnetProcedures {
     assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
   }
 
-  function test_rwaAToken_transferFrom_alice_to_bob_by_carol_revertsWith_CallerNotATokenTransferAdmin()
-    public
-  {
-    uint256 aliceBalance = aBuidl.balanceOf(alice);
-
+  function test_rwaAToken_transferFrom_revertsWith_CallerNotATokenTransferAdmin() public {
     vm.expectRevert(bytes(Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN));
 
     vm.prank(carol);
-    aBuidl.transferFrom(alice, bob, aliceBalance);
+    aBuidl.transferFrom(alice, bob, 0);
+  }
+
+  function test_rwaAToken_transferFrom_fuzz_revertsWith_CallerNotATokenTransferAdmin(
+    address from
+  ) public {
+    vm.assume(from != aTokenTransferAdmin);
+
+    vm.expectRevert(bytes(Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN));
+
+    vm.prank(from);
+    aBuidl.transferFrom(alice, bob, 0);
   }
 }

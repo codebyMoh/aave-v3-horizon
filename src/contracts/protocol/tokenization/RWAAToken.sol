@@ -12,7 +12,19 @@ import {IPool} from 'src/contracts/interfaces/IPool.sol';
 abstract contract RWAAToken is AToken {
   using SafeCast for uint256;
 
-  bytes32 public constant RWA_FORCE_TRANSFER_ROLE = keccak256('RWA_FORCE_TRANSFER_ROLE');
+  bytes32 public constant ATOKEN_TRANSFER_ROLE = keccak256('ATOKEN_TRANSFER_ROLE');
+
+  /**
+   * @dev Only AToken Transfer Admin can call functions marked by this modifier.
+   */
+  modifier onlyATokenTransferAdmin() {
+    AccessControl aclManager = AccessControl(_addressesProvider.getACLManager());
+    require(
+      aclManager.hasRole(ATOKEN_TRANSFER_ROLE, msg.sender),
+      Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN
+    );
+    _;
+  }
 
   /**
    * @dev Constructor.
@@ -61,41 +73,22 @@ abstract contract RWAAToken is AToken {
     revert(Errors.OPERATION_NOT_SUPPORTED);
   }
 
-  /**
-   * @notice Transfers the aTokens between two users. Validates the transfer
-   * (ie checks for valid HF after the transfer) if required
-   * @param from The source address
-   * @param to The destination address
-   * @param amount The amount getting transferred
-   * @param validate True if the transfer needs to be validated, false otherwise
-   */
-  function _transfer(
-    address from,
-    address to,
-    uint256 amount,
-    bool validate
-  ) internal virtual override onlyATokenTransferAdmin {
-    super._transfer(from, to, amount, validate);
+  /// @inheritdoc IERC20
+  function transfer(
+    address recipient,
+    uint256 amount
+  ) external virtual override(IERC20, IncentivizedERC20) returns (bool) {
+    revert(Errors.OPERATION_NOT_SUPPORTED);
   }
 
   /// @inheritdoc IERC20
+  /// @dev transferFrom is available only for AToken Transfer Admin
+  /// @dev hence, the function does not rely on allowances at all
   function transferFrom(
     address sender,
     address recipient,
     uint256 amount
-  ) external virtual override(IERC20, IncentivizedERC20) returns (bool) {
+  ) external virtual override(IERC20, IncentivizedERC20) onlyATokenTransferAdmin returns (bool) {
     _transfer(sender, recipient, amount.toUint128());
-  }
-
-  /**
-   * @dev Only RWA force transfr admin can call functions marked by this modifier.
-   */
-  modifier onlyATokenTransferAdmin() {
-    AccessControl aclManager = AccessControl(_addressesProvider.getACLManager());
-    require(
-      aclManager.hasRole(RWA_FORCE_TRANSFER_ROLE, msg.sender),
-      Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN
-    );
-    _;
   }
 }
