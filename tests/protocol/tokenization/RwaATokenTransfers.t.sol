@@ -118,4 +118,64 @@ contract RwaATokenTransferTests is TestnetProcedures {
     vm.prank(from);
     aBuidl.transferFrom(alice, bob, 0);
   }
+
+  function test_rwaAToken_transferOnLiquidation_revertsWith_CallerNotPool() public {
+    vm.expectRevert(bytes(Errors.CALLER_MUST_BE_POOL));
+
+    vm.prank(carol);
+    aBuidl.transferOnLiquidation(alice, bob, 0);
+  }
+
+  function test_rwaAToken_transferOnLiquidation_fuzz_revertsWith_CallerNotPool(
+    address from
+  ) public {
+    vm.assume(from != report.poolProxy);
+
+    vm.expectRevert(bytes(Errors.CALLER_MUST_BE_POOL));
+
+    vm.prank(from);
+    aBuidl.transferOnLiquidation(alice, bob, 0);
+  }
+
+  function test_rwaAToken_transferOnLiquidation_all() public {
+    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
+    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+    vm.expectEmit(address(aBuidl));
+    emit IERC20.Transfer(alice, bob, aliceBalanceBefore);
+
+    vm.prank(report.poolProxy);
+    aBuidl.transferOnLiquidation(alice, bob, aliceBalanceBefore);
+
+    assertEq(aBuidl.balanceOf(alice), 0);
+    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aliceBalanceBefore);
+  }
+
+  function test_rwaAToken_transferOnLiquidation_partial() public {
+    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
+    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+    vm.expectEmit(address(aBuidl));
+    emit IERC20.Transfer(alice, bob, 1);
+
+    vm.prank(report.poolProxy);
+    aBuidl.transferOnLiquidation(alice, bob, 1);
+
+    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore - 1);
+    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + 1);
+  }
+
+  function test_rwaAToken_transferOnLiquidation_zero() public {
+    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
+    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+
+    vm.expectEmit(address(aBuidl));
+    emit IERC20.Transfer(alice, bob, 0);
+
+    vm.prank(report.poolProxy);
+    aBuidl.transferOnLiquidation(alice, bob, 0);
+
+    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore);
+    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
+  }
 }
