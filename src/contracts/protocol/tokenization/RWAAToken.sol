@@ -7,6 +7,7 @@ import {SafeCast} from 'src/contracts/dependencies/openzeppelin/contracts/SafeCa
 import {IERC20} from 'src/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 import {Errors} from 'src/contracts/protocol/libraries/helpers/Errors.sol';
 import {AToken} from 'src/contracts/protocol/tokenization/AToken.sol';
+import {IAToken} from 'src/contracts/interfaces/IAToken.sol';
 import {IPool} from 'src/contracts/interfaces/IPool.sol';
 
 abstract contract RWAAToken is AToken {
@@ -23,6 +24,11 @@ abstract contract RWAAToken is AToken {
       aclManager.hasRole(ATOKEN_TRANSFER_ROLE, msg.sender),
       Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN
     );
+    _;
+  }
+
+  modifier onlyTreasuryRecipient(address recipient) {
+    require(recipient == _treasury, Errors.RECIPIENT_NOT_TREASURY);
     _;
   }
 
@@ -90,5 +96,14 @@ abstract contract RWAAToken is AToken {
     uint256 amount
   ) external virtual override(IERC20, IncentivizedERC20) onlyATokenTransferAdmin returns (bool) {
     _transfer(sender, recipient, amount.toUint128());
+  }
+
+  /// @inheritdoc IAToken
+  function transferOnLiquidation(
+    address from,
+    address to,
+    uint256 value
+  ) public virtual override onlyTreasuryRecipient(to) {
+    super.transferOnLiquidation(from, to, value);
   }
 }

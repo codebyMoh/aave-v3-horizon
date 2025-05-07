@@ -45,13 +45,6 @@ contract RwaATokenTransferTests is TestnetProcedures {
     vm.stopPrank();
   }
 
-  function test_rwaAToken_transfer_revertsWith_OperationNotSupported() public {
-    vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
-
-    vm.prank(aTokenTransferAdmin);
-    aBuidl.transfer(alice, 0);
-  }
-
   function test_rwaAToken_transfer_fuzz_revertsWith_OperationNotSupported(address from) public {
     vm.expectRevert(bytes(Errors.OPERATION_NOT_SUPPORTED));
 
@@ -59,53 +52,36 @@ contract RwaATokenTransferTests is TestnetProcedures {
     aBuidl.transfer(alice, 0);
   }
 
-  function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_all() public {
+  function test_rwaAToken_transfer_revertsWith_OperationNotSupported() public {
+    test_rwaAToken_transfer_fuzz_revertsWith_OperationNotSupported(carol);
+  }
+
+  function test_rwaAToken_transferFrom_fuzz_by_aTokenTransferAdmin(uint256 amount) public {
     uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
+    amount = bound(amount, 0, aliceBalanceBefore);
+
     uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
 
     vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(alice, bob, aliceBalanceBefore);
+    emit IERC20.Transfer(alice, bob, amount);
 
     vm.prank(aTokenTransferAdmin);
-    aBuidl.transferFrom(alice, bob, aliceBalanceBefore);
+    aBuidl.transferFrom(alice, bob, amount);
 
-    assertEq(aBuidl.balanceOf(alice), 0);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aliceBalanceBefore);
+    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore - amount);
+    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + amount);
+  }
+
+  function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_all() public {
+    test_rwaAToken_transferFrom_fuzz_by_aTokenTransferAdmin(aBuidl.balanceOf(alice));
   }
 
   function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_partial() public {
-    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(alice, bob, 1);
-
-    vm.prank(aTokenTransferAdmin);
-    aBuidl.transferFrom(alice, bob, 1);
-
-    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore - 1);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + 1);
+    test_rwaAToken_transferFrom_fuzz_by_aTokenTransferAdmin(1);
   }
 
   function test_rwaAToken_transferFrom_by_aTokenTransferAdmin_zero() public {
-    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(alice, bob, 0);
-
-    vm.prank(aTokenTransferAdmin);
-    aBuidl.transferFrom(alice, bob, 0);
-
-    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
-  }
-
-  function test_rwaAToken_transferFrom_revertsWith_CallerNotATokenTransferAdmin() public {
-    vm.expectRevert(bytes(Errors.CALLER_NOT_ATOKEN_TRANSFER_ADMIN));
-
-    vm.prank(carol);
-    aBuidl.transferFrom(alice, bob, 0);
+    test_rwaAToken_transferFrom_fuzz_by_aTokenTransferAdmin(0);
   }
 
   function test_rwaAToken_transferFrom_fuzz_revertsWith_CallerNotATokenTransferAdmin(
@@ -119,11 +95,23 @@ contract RwaATokenTransferTests is TestnetProcedures {
     aBuidl.transferFrom(alice, bob, 0);
   }
 
-  function test_rwaAToken_transferOnLiquidation_revertsWith_CallerNotPool() public {
-    vm.expectRevert(bytes(Errors.CALLER_MUST_BE_POOL));
+  function test_rwaAToken_transferFrom_revertsWith_CallerNotATokenTransferAdmin() public {
+    test_rwaAToken_transferFrom_fuzz_revertsWith_CallerNotATokenTransferAdmin(carol);
+  }
 
-    vm.prank(carol);
-    aBuidl.transferOnLiquidation(alice, bob, 0);
+  function test_rwaAToken_transferOnLiquidation_fuzz_revertsWith_RecipientNotTreasury(
+    address to
+  ) public {
+    vm.assume(to != report.treasury);
+
+    vm.expectRevert(bytes(Errors.RECIPIENT_NOT_TREASURY));
+
+    vm.prank(report.poolProxy);
+    aBuidl.transferOnLiquidation(alice, to, 0);
+  }
+
+  function test_rwaAToken_transferOnLiquidation_revertsWith_RecipientNotTreasury() public {
+    test_rwaAToken_transferOnLiquidation_fuzz_revertsWith_RecipientNotTreasury(carol);
   }
 
   function test_rwaAToken_transferOnLiquidation_fuzz_revertsWith_CallerNotPool(
@@ -134,48 +122,38 @@ contract RwaATokenTransferTests is TestnetProcedures {
     vm.expectRevert(bytes(Errors.CALLER_MUST_BE_POOL));
 
     vm.prank(from);
-    aBuidl.transferOnLiquidation(alice, bob, 0);
+    aBuidl.transferOnLiquidation(alice, report.treasury, 0);
   }
 
-  function test_rwaAToken_transferOnLiquidation_all() public {
+  function test_rwaAToken_transferOnLiquidation_revertsWith_CallerNotPool() public {
+    test_rwaAToken_transferOnLiquidation_fuzz_revertsWith_CallerNotPool(carol);
+  }
+
+  function test_rwaAToken_transferOnLiquidation_fuzz(uint256 amount) public {
     uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
+    amount = bound(amount, 0, aliceBalanceBefore);
+
+    uint256 treasuryBalanceBefore = aBuidl.balanceOf(report.treasury);
 
     vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(alice, bob, aliceBalanceBefore);
+    emit IERC20.Transfer(alice, report.treasury, amount);
 
     vm.prank(report.poolProxy);
-    aBuidl.transferOnLiquidation(alice, bob, aliceBalanceBefore);
+    aBuidl.transferOnLiquidation(alice, report.treasury, amount);
 
-    assertEq(aBuidl.balanceOf(alice), 0);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + aliceBalanceBefore);
+    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore - amount);
+    assertEq(aBuidl.balanceOf(report.treasury), treasuryBalanceBefore + amount);
+  }
+
+  function test_rwaAToken_transferOnLiqudation_all() public {
+    test_rwaAToken_transferOnLiquidation_fuzz(aBuidl.balanceOf(alice));
   }
 
   function test_rwaAToken_transferOnLiquidation_partial() public {
-    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(alice, bob, 1);
-
-    vm.prank(report.poolProxy);
-    aBuidl.transferOnLiquidation(alice, bob, 1);
-
-    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore - 1);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore + 1);
+    test_rwaAToken_transferOnLiquidation_fuzz(1);
   }
 
   function test_rwaAToken_transferOnLiquidation_zero() public {
-    uint256 aliceBalanceBefore = aBuidl.balanceOf(alice);
-    uint256 bobBalanceBefore = aBuidl.balanceOf(bob);
-
-    vm.expectEmit(address(aBuidl));
-    emit IERC20.Transfer(alice, bob, 0);
-
-    vm.prank(report.poolProxy);
-    aBuidl.transferOnLiquidation(alice, bob, 0);
-
-    assertEq(aBuidl.balanceOf(alice), aliceBalanceBefore);
-    assertEq(aBuidl.balanceOf(bob), bobBalanceBefore);
+    test_rwaAToken_transferOnLiquidation_fuzz(0);
   }
 }
