@@ -1,0 +1,40 @@
+name: Sync All Branches and Tags from Upstream
+
+on:
+  schedule:
+    - cron: '0 10 * * *' # Runs daily at 2 AM UTC
+  workflow_dispatch:     # Allows manual triggering
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout your fork
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set Git identity
+        run: |
+          git config --global user.name "codebyMoh"
+          git config --global user.email "codebymohit@gmail.com"
+
+      - name: Add upstream repository
+        run: git remote add upstream https://github.com/aave-dao/aave-v3-origin.git
+
+      - name: Fetch all branches and tags from upstream
+        run: |
+          git fetch upstream --tags
+
+      - name: Sync all branches from upstream
+        run: |
+          for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/upstream/); do
+            git checkout -B "$branch" "upstream/$branch"
+            git push origin "$branch" --force
+          done
+
+      - name: Push all upstream tags to fork
+        run: |
+          git push origin --tags --force
